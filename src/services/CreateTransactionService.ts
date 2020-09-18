@@ -1,6 +1,13 @@
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
 
+interface Request {
+  title: string;
+
+  value: number;
+
+  type: 'income' | 'outcome';
+}
 class CreateTransactionService {
   private transactionsRepository: TransactionsRepository;
 
@@ -8,8 +15,21 @@ class CreateTransactionService {
     this.transactionsRepository = transactionsRepository;
   }
 
-  public execute(): Transaction {
-    // TODO
+  public execute({ title, value, type }: Request): Transaction {
+    if (
+      title.trim() === '' ||
+      value <= 0 ||
+      (type !== 'income' && type !== 'outcome')
+    )
+      throw new Error('invalid parameteres.');
+
+    if (
+      type === 'outcome' &&
+      value > this.transactionsRepository.getBalance().total
+    )
+      throw new Error('insuficient funds.');
+
+    return this.transactionsRepository.create({ title, value, type });
   }
 }
 
